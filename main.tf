@@ -51,8 +51,13 @@ resource "digitalocean_firewall" "mysql" {
 
   inbound_rule {
     protocol         = "tcp"
+    port_range       = "3306"
+    source_addresses = ["digitalocean_droplet.nodejs.ipv4_address"]
+  }
+  inbound_rule {
+    protocol         = "tcp"
     port_range       = "22"
-    source_addresses = ["192.168.1.0/24", "2002:1:2::/48"]
+    source_addresses = ["191.95.132.34"]
   }
 
   inbound_rule {
@@ -87,8 +92,15 @@ resource "digitalocean_firewall" "mysql" {
   outbound_rule {
     protocol              = "icmp"
     destination_addresses = ["0.0.0.0/0", "::/0"]
+
   }
-}
+  # outbound_rule {
+  # protocol              = "tcp"
+  # port_range            = "0-65535"
+  # destination_addresses = ["0.0.0.0/0"]
+  # }
+  }
+
 
 
 
