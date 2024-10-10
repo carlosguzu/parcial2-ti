@@ -1,0 +1,38 @@
+---
+- name: Configurar y desplegar MySQL
+  hosts: mysql
+  become: true
+
+
+  tasks:
+    - name: Actualizar el sistema
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Instalar MySQL
+      apt:
+        name: mysql-server
+        state: present
+
+    # - name: Configurar MySQL para que escuche solo en localhost
+    #   lineinfile:
+    #     path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    #     regexp: '^bind-address'
+    #     line: 'bind-address = 127.0.0.1'
+
+    # - name: Reiniciar MySQL
+    #   service:
+    #     name: mysql
+    #     state: restarted
+
+    - name: Crear base de datos y usuario
+      mysql_db:
+        name: testdb
+
+    - name: Crear usuario MySQL
+      mysql_user:
+        name: root
+        password: "123456"
+        priv: "testdb.*:ALL"
+        host: "localhost"

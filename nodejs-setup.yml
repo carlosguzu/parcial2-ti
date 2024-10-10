@@ -1,0 +1,81 @@
+---
+- name: Configurar y desplegar la aplicación Node.js
+  hosts: nodejs
+  become: true
+
+  vars:
+    app_directory: "/root/nodejs-express-mysql"
+    
+  tasks:
+    - name: Actualizar el sistema
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Instalar Node.js y NPM
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - nodejs
+        - npm
+
+    - name: Clonar el repositorio de la aplicación
+      git:
+        repo: 'https://github.com/bezkoder/nodejs-express-mysql.git'
+        dest: "{{ app_directory }}"
+
+    - name: Instalar dependencias de la aplicación
+      npm:
+        path: "{{ app_directory }}"
+        state: present
+
+    - name: Iniciar la aplicación
+      shell: |
+        cd {{ app_directory }}
+        nohup node server.js &
+
+
+
+
+
+
+
+
+
+
+
+
+    # - name: Configurar Nginx
+    #   copy:
+    #     dest: /etc/nginx/sites-available/myapp
+    #     content: |
+    #       server {
+    #           listen 80;
+    #           server_name localhost;  # Cambia esto si es necesario
+    #           return 301 https://$host$request_uri;
+    #       }
+
+    #       server {
+    #           listen 443 ssl;
+    #           server_name localhost;  # Cambia esto si es necesario
+
+    #           ssl_protocols TLSv1.2;
+
+    #           location / {
+    #               proxy_pass http://localhost:8080;  #  según el puerto aplicación
+    #               proxy_http_version 1.1;
+    #               proxy_set_header Upgrade $http_upgrade;
+    #               proxy_set_header Connection 'upgrade';
+    #               proxy_set_header Host $host;
+    #               proxy_cache_bypass $http_upgrade;
+    #           }
+    #       }
+
+    # - name: Habilitar configuración de Nginx
+    #   command: nginx -s reload
+
+    # - name: Reiniciar Nginx
+    #   service:
+    #     name: nginx
+    #     state: restarted
