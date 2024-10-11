@@ -5,7 +5,7 @@
 
   vars:
     app_directory: "/root/nodejs-express-mysql"
-    
+
   tasks:
     - name: Actualizar el sistema
       apt:
@@ -19,7 +19,7 @@
       loop:
         - nodejs
         - npm
-
+        
     - name: Clonar el repositorio de la aplicación
       git:
         repo: 'https://github.com/bezkoder/nodejs-express-mysql.git'
@@ -30,13 +30,15 @@
         path: "{{ app_directory }}"
         state: present
 
-    - name: Iniciar la aplicación
+    - name: Instalar pm2
+      npm:
+        name: pm2
+        global: yes
+
+    - name: Iniciar la aplicación con pm2
       shell: |
         cd {{ app_directory }}
-        nohup node server.js &
-
-
-
+        pm2 start server.js --name my-app
 
 
 

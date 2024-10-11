@@ -20,20 +20,20 @@ provider "digitalocean" {
 
 
 resource "digitalocean_droplet" "mysql" {
-  image    = "ubuntu-20-04-x64"
   name     = "mysql-droplet"
-  region   = "nyc1" # Elige una región cercana a ti
-  size     = "s-1vcpu-1gb" # Ajusta el tamaño del droplet
+  region   = "nyc1" 
+  image = "ubuntu-24-10-x64 "
+  size = "s-1vcpu-512mb-10gb "
   ssh_keys = ["7b:4f:8b:d7:ce:11:10:88:b1:e3:45:11:6d:a4:f2:5c"]
 }
 
 
 
 resource "digitalocean_droplet" "nodejs" {
-  image    = "ubuntu-20-04-x64"
   name     = "nodejs-droplet"
   region   = "nyc1"
-  size     = "s-1vcpu-1gb"
+  image = "ubuntu-24-10-x64 "
+  size = "s-1vcpu-512mb-10gb "
   ssh_keys = ["7b:4f:8b:d7:ce:11:10:88:b1:e3:45:11:6d:a4:f2:5c"]
 }
 
@@ -71,6 +71,13 @@ resource "digitalocean_firewall" "mysql" {
     port_range            = "443" # HTTPS
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
+
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "80" # HTTP
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
 
   outbound_rule {
     protocol              = "udp"
