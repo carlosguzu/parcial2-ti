@@ -13,106 +13,99 @@ provider "digitalocean" {
   token = var.digitalocean
 }
 
-# Aquí iría el resto de la configuración de recursos, como los Droplets, redes, etc.
-
-
-# Droplets
-
-
+# MySQL Droplet using DigitalOcean Marketplace image
 resource "digitalocean_droplet" "mysql" {
-  name     = "mysql-droplet"
-  region   = "nyc1" 
-  image = "ubuntu-24-10-x64 "
-  size = "s-1vcpu-512mb-10gb "
-  ssh_keys = ["7b:4f:8b:d7:ce:11:10:88:b1:e3:45:11:6d:a4:f2:5c"]
+  name     = "mysqlonubuntu2004-s-1vcpu-1gb-nyc1-01"
+  region   = "nyc1"
+  image    = "mysql-20-04"      
+  size     = "s-1vcpu-1gb"
+  ssh_keys = ["ec:9c:fe:af:18:f8:9c:ae:0b:b3:a0:ee:ec:05:88:d7"]
 }
 
-
-
+# Node.js Droplet (no changes here)
 resource "digitalocean_droplet" "nodejs" {
   name     = "nodejs-droplet"
   region   = "nyc1"
-  image = "ubuntu-24-10-x64 "
-  size = "s-1vcpu-512mb-10gb "
-  ssh_keys = ["7b:4f:8b:d7:ce:11:10:88:b1:e3:45:11:6d:a4:f2:5c"]
+  image    = "ubuntu-24-10-x64"
+  size     = "s-1vcpu-512mb-10gb"
+  ssh_keys = ["ec:9c:fe:af:18:f8:9c:ae:0b:b3:a0:ee:ec:05:88:d7"]
 }
 
+# # Firewall for MySQL
+# resource "digitalocean_firewall" "mysql" {
+#   name = "mysql-firewall"
 
-# Firewalls y reglas de los droplets
+#   droplet_ids = [digitalocean_droplet.mysql.id]
 
+#   # Allow MySQL connection only from the Node.js server
+#   inbound_rule {
+#     protocol         = "tcp"
+#     port_range       = "3306"
+#     source_addresses = [digitalocean_droplet.nodejs.ipv4_address]
+#   }
 
+  # # Allow SSH only from the control machine (your machine's IP)
+  # inbound_rule {
+  #   protocol         = "tcp"
+  #   port_range       = "22"
+  #   source_addresses = ["191.95.132.34"] # your IP 191.95.132.34
+  # }
 
-# Aislar la conexión a la BD de tal manera que solo se tenga acceso desde la aplicación web (App Service). Esto se logra configurando del firewall de la BD MySQL)
+  # # Inbound rule for HTTPS (port 443) to secure phpMyAdmin access
+  # inbound_rule {
+  #   protocol         = "tcp"
+  #   port_range       = "443" # HTTPS only
+  #   source_addresses = ["0.0.0.0/0", "::/0"]  # All addresses can access HTTPS
+  # }
 
-# Firewall para mysql
+  # # Optional: Inbound rule for HTTP (port 80) only if not forcing HTTPS
+  # inbound_rule {
+  #   protocol         = "tcp"
+  #   port_range       = "80" # HTTP access (for non-HTTPS users)
+  #   source_addresses = ["0.0.0.0/0", "::/0"]
+  # }
 
-resource "digitalocean_firewall" "mysql" {
-  name = "mysql-firewall"
+  # # Outbound rule for HTTPS and DNS (to allow internet access)
+  # outbound_rule {
+  #   protocol              = "tcp"
+  #   port_range            = "443"
+  #   destination_addresses = ["0.0.0.0/0", "::/0"]
+  # }
 
-  droplet_ids = [digitalocean_droplet.mysql.id]
+  # outbound_rule {
+  #   protocol              = "udp"
+  #   port_range            = "53"
+  #   destination_addresses = ["0.0.0.0/0", "::/0"]
+  # }
+# }
 
-  # Permitir conexión MySQL solo desde el servidor de Node.js
-  inbound_rule {
-    protocol         = "tcp"
-    port_range       = "3306"
-    source_addresses = [digitalocean_droplet.nodejs.ipv4_address]
-  }
+# # Firewall for Node.js
+# resource "digitalocean_firewall" "nodejs" {
+#   name = "nodejs-firewall"
 
-  # Permitir SSH solo desde la máquina de control
-  inbound_rule {
-    protocol         = "tcp"
-    port_range       = "22"
-    source_addresses = ["191.95.132.34"] #mi ip 
-  }
+#   droplet_ids = [digitalocean_droplet.nodejs.id]
 
-  # Reglas de salida estándar (Internet)
-  outbound_rule {
-    protocol              = "tcp"
-    port_range            = "443" # HTTPS
-    destination_addresses = ["0.0.0.0/0", "::/0"]
-  }
+#   # Inbound rule for HTTPS (port 443)
+#   inbound_rule {
+#     protocol         = "tcp"
+#     port_range       = "443"
+#     source_addresses = ["0.0.0.0/0", "::/0"]  # Allow all to access Node.js over HTTPS
+#   }
 
-  outbound_rule {
-    protocol              = "tcp"
-    port_range            = "80" # HTTP
-    destination_addresses = ["0.0.0.0/0", "::/0"]
-  }
+#   # Outbound rule for HTTPS and DNS
+#   outbound_rule {
+#     protocol              = "tcp"
+#     port_range            = "443"
+#     destination_addresses = ["0.0.0.0/0", "::/0"]
+#   }
 
+#   outbound_rule {
+#     protocol              = "udp"
+#     port_range            = "53"
+#     destination_addresses = ["0.0.0.0/0", "::/0"]
+#   }
+# }
 
-  outbound_rule {
-    protocol              = "udp"
-    port_range            = "53" # DNS (53) para consultas
-    destination_addresses = ["0.0.0.0/0", "::/0"]
-  }
-}
-
-
-
-# Firewall para Node.js
-
-resource "digitalocean_firewall" "nodejs" {
-  name = "nodejs-firewall"
-
-  # Reglas de entrada para HTTPS (puerto 443)
-  inbound_rule {
-    protocol         = "tcp"
-    port_range       = "443" # Solo HTTPS
-    source_addresses = ["0.0.0.0/0", "::/0"]
-  }
-
-  # Reglas de salida para HTTPS y DNS
-  outbound_rule {
-    protocol              = "tcp"
-    port_range            = "443" # HTTPS
-    destination_addresses = ["0.0.0.0/0", "::/0"]
-  }
-
-  outbound_rule {
-    protocol              = "udp"
-    port_range            = "53" # DNS (53) para consultas
-    destination_addresses = ["0.0.0.0/0", "::/0"]
-  }
-}
 
 
 
